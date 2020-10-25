@@ -97,22 +97,53 @@
                 <v-conteiner>
                     <v-form v-on:submit.prevent="adicionarEvento">
                         <v-text-field 
-                           type="text" label="Nome" v-model="name">
+                           type="text" 
+                           label="Nome" 
+                           v-model="name"
+                        >
                         </v-text-field>
                         <v-text-field 
-                           type="text" label="Descrição" v-model="details">
+                           type="text" 
+                           label="Descrição" 
+                           v-model="details"
+                        >
                         </v-text-field>
                         <v-text-field 
-                           type="date" label="Início do evento" v-model="start">
+                           type="date" 
+                           label="Início do evento" 
+                           v-model="start"
+                        >
+                        </v-text-field>
+                        <v-text-field
+                           type="time"
+                           label="Horário de início"
+                           v-model="start_time"
+                        >
                         </v-text-field>
                         <v-text-field 
-                           type="date" label="Fim do evento" v-model="end">
+                           type="date" 
+                           label="Fim do evento" 
+                           v-model="end"
+                        >
+                        </v-text-field>
+                        <v-text-field
+                           type="time" 
+                           label="Horário de fim" 
+                           v-model="end_time"
+                        >
                         </v-text-field>
                         <v-text-field 
-                           type="color" label="Cor do evento" v-model="color">
+                           type="color" 
+                           label="Cor do evento" 
+                           v-model="color"
+                        >
                         </v-text-field>
                         <v-btn 
-                            type="submit" color="primary" class="mr-4" v-on:click.stop="dialog = false">
+                            type="submit" 
+                            color="primary" 
+                            class="mr-4" 
+                            v-on:click.stop="dialog = false"
+                        >
                             Definir
                         </v-btn>
                     </v-form>
@@ -144,8 +175,11 @@
               <v-form v-if="currentlyEditing !== selectedEvent.id">
                 <strong>Nome:</strong> {{selectedEvent.name}}
                 <br>
-                <br>
                 <strong>Descrição:</strong> {{selectedEvent.details}}
+                <br>
+                <strong>Início:</strong> {{selectedEvent.start_time}} {{selectedEvent.start}}
+                <br>
+                <strong>Fim:</strong> {{selectedEvent.end_time}} {{selectedEvent.end}}
               </v-form>
               <v-form v-else>
                 <v-text-field 
@@ -160,6 +194,26 @@
                   style="width: 100%"
                   :min-height="100"
                 ></textarea-autosize>
+                <v-text-field
+                  type="date"
+                  v-model="selectedEvent.start"
+                  label="Editar data de início"
+                ></v-text-field>
+                <v-text-field
+                  type="time"
+                  v-model="selectedEvent.start_time"
+                  label="Editar horário de início"
+                ></v-text-field>
+                <v-text-field
+                  type="date"
+                  v-model="selectedEvent.end"
+                  label="Editar data de fim"
+                ></v-text-field>
+                <v-text-field
+                  type="time"
+                  v-model="selectedEvent.end_time"
+                  label="Editar horário de fim"
+                ></v-text-field>
               </v-form>
             </v-card-text>
             <v-card-actions>
@@ -213,7 +267,9 @@ import { createLogger } from 'vuex'
       name: null,
       details: null,
       start: null,
+      start_time: null,
       end: null,
+      end_time: null,
       color: '#1976D2',
       dialog: false,
       currentlyEditing: null
@@ -246,7 +302,9 @@ import { createLogger } from 'vuex'
                       name: this.name,
                       details: this.details,
                       start: this.start,
+                      start_time: this.start_time,
                       end: this.end,
+                      end_time: this.end_time,
                       color: this.color
                   });
                   this.getEvento();
@@ -278,7 +336,11 @@ import { createLogger } from 'vuex'
         try {
           await db.collection('eventos').doc(e.id).update({
             name: e.name,
-            details: e.details
+            details: e.details,
+            start: e.start,
+            start_time: e.start_time,
+            end: e.end,
+            end_time: e.end_time
           });
           this.selectedOpen = false;
           this.currentlyEditing = null;
