@@ -1,24 +1,20 @@
 <template>
   <v-app>
-    <!--<Login/>-->
-    <Calendario/>
+    <div>
+      <router-view></router-view>>
+    </div>
   </v-app>
 </template>
 
 <script>
-import Login from './components/Login';
-import Calendario from './components/Calendario';
 
 export default {
-  name: 'App',
+  data() {
 
-  components: {
-    Login,
-    Calendario,
-  },
-
-  data: () => ({
-    //
-  }),
-};
+  }
+}
 </script>
+
+<style scoped>
+
+</style>

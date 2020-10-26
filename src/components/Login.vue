@@ -10,6 +10,7 @@
             id="nomeUsuario"
             label="Nome de usuário" 
             prepend-icon="mdi-account-circle"
+            v-model="username"
           />
           <v-text-field 
             id="senhaUsuario"
@@ -18,13 +19,14 @@
             prepend-icon="mdi-lock"
             :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
             @click:append="showPassword = !showPassword"
+            v-model="password"
           />
         </v-form>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
-        <v-btn color="success" v-on:click="onRegistro">Registrar</v-btn>
-        <v-btn color="info" v-on:click="onLogin">Entrar</v-btn>
+        <v-btn color="success" v-on:click="onRegister">Registrar</v-btn>
+        <v-btn color="info" v-on:click="onLogin">Login</v-btn>
       </v-card-actions>
     </v-card>
   </v-app>
@@ -36,9 +38,9 @@ import {db} from '../main'
 export default {
     data() {
         return {
-            nome_usuario: document.getElementById('#nomeUsuario').value(),
-            senha: document.getElementById('#senhaUsuario').value(),
-            loginValido: false
+            username: null,
+            password: null,
+            loginValid: false
         }
     },
     methods: {
@@ -47,24 +49,24 @@ export default {
                 const snapshot = await db.collection('usuario').get();
                 snapshot.forEach(doc => {
                     let eventoData = doc.data();
-                    if (eventoData.nome_usuario == this.nome_usuario && eventoData.senha == this.senha) {
-                        this.loginValido = true;
+                    if (eventoData.username == this.username && eventoData.password == this.password) {
+                        this.loginValid = true;
                     }
                 });
             } catch (error) {
                 console.log(error);
             }
         },
-        async onRegistro() {
+        async onRegister() {
             try {
-                if (this.nome_usuario && this.senha) {
+                if (this.username && this.password) {
                     await db.collection('usuario').add({
-                        nome_usuario: this.nome_usuario,
-                        senha: this.senha
+                        username: this.username,
+                        password: this.password
                     });
-                    this.nome_usuario = null;
-                    this.senha = null;
-                    this.loginValido = true;
+                    this.username = null;
+                    this.password = null;
+                    this.loginValid = true;
                 } else {
                     console.log('Campo obligátorio')
                 }

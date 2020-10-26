@@ -1,8 +1,12 @@
 import Vue from 'vue'
-import App from './App.vue'
-import router from './router'
+import App from './App'
+import VueRouter from 'vue-router'
 import store from './store'
-import vuetify from './plugins/vuetify';
+import vuetify from './plugins/vuetify'
+import Login from './components/Login'
+import Calendario from './components/Calendario'
+
+Vue.use(VueRouter);
 
 import VueTextareaAutosize from 'vue-textarea-autosize';
 Vue.use(VueTextareaAutosize);
@@ -24,6 +28,20 @@ firebase.initializeApp(firebaseConfig);
 export const db = firebase.firestore();
 
 Vue.config.productionTip = false
+
+const router = new VueRouter({
+  mode: 'history',
+  routes: [
+    {
+      path: '/',
+      component: Login
+    },
+    {
+      path: '/eventos',
+      component: Calendario
+    }
+  ]
+})
 
 new Vue({
   router,
