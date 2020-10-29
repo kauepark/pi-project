@@ -11,10 +11,10 @@
           <v-btn
             outlined
             class="mr-4"
-            color="blue"
+            color="grey darken-2"
             @click="setToday"
           >
-            HOJE
+            Hoje
           </v-btn>
           <v-btn
             fab
@@ -92,7 +92,7 @@
           locale="pt-br"
           :short-weekdays="true"
         ></v-calendar>
-        <v-dialog v-model="dialog">
+        <v-dialog v-model="dialog" max-width="700">
             <v-card>
                 <v-conteiner>
                     <v-form v-on:submit.prevent="adicionarEvento">
@@ -114,22 +114,10 @@
                            v-model="start"
                         >
                         </v-text-field>
-                        <v-text-field
-                           type="time"
-                           label="Horário de início"
-                           v-model="start_time"
-                        >
-                        </v-text-field>
                         <v-text-field 
                            type="date" 
                            label="Fim do evento" 
                            v-model="end"
-                        >
-                        </v-text-field>
-                        <v-text-field
-                           type="time" 
-                           label="Horário de fim" 
-                           v-model="end_time"
                         >
                         </v-text-field>
                         <v-text-field 
@@ -177,9 +165,9 @@
                 <br>
                 <strong>Descrição:</strong> {{selectedEvent.details}}
                 <br>
-                <strong>Início:</strong> {{selectedEvent.start_time}} {{selectedEvent.start}}
+                <strong>Início:</strong> {{selectedEvent.start}}
                 <br>
-                <strong>Fim:</strong> {{selectedEvent.end_time}} {{selectedEvent.end}}
+                <strong>Fim:</strong> {{selectedEvent.end}}
               </v-form>
               <v-form v-else>
                 <v-text-field 
@@ -200,19 +188,9 @@
                   label="Editar data de início"
                 ></v-text-field>
                 <v-text-field
-                  type="time"
-                  v-model="selectedEvent.start_time"
-                  label="Editar horário de início"
-                ></v-text-field>
-                <v-text-field
                   type="date"
                   v-model="selectedEvent.end"
                   label="Editar data de fim"
-                ></v-text-field>
-                <v-text-field
-                  type="time"
-                  v-model="selectedEvent.end_time"
-                  label="Editar horário de fim"
                 ></v-text-field>
               </v-form>
             </v-card-text>
@@ -247,8 +225,8 @@
 </template>
 
 <script>
-import { createLogger } from 'vuex'
-  import {db} from '../main'
+  import Eventos from '../services/eventos'
+
   export default {
     name: 'Calendario',
     data: () => ({
@@ -258,24 +236,23 @@ import { createLogger } from 'vuex'
         month: 'Mês',
         week: 'Semana',
         day: 'Dia',
-        '4day': '4 Dias',
+        '4day': '4 dias',
       },
       selectedEvent: {},
       selectedElement: null,
       selectedOpen: false,
       events: [],
+      id: null,
       name: null,
       details: null,
       start: null,
-      start_time: null,
       end: null,
-      end_time: null,
       color: '#1976D2',
       dialog: false,
       currentlyEditing: null
     }),
-    mounted() {
-        this.$refs.calendar.checkChange();
+    mounted () {
+      this.$refs.calendar.checkChange()
     },
     created() {
         this.getEvento();
@@ -283,38 +260,44 @@ import { createLogger } from 'vuex'
     methods: {
       async getEvento() {
           try {
-              const snapshot = await db.collection('eventos').get();
-              const events = [];
-              snapshot.forEach(doc => {
-                  let eventoData = doc.data();
-                  eventoData.id = doc.id;
-                  events.push(eventoData);
+            await Eventos.listar().then(resposta => {
+              this.events = [];
+              const snapshot = resposta.data;
+              snapshot.forEach(e => {
+                this.events.push({
+                  id: e.id,
+                  name: e.name,
+                  details: e.details,
+                  start: e.start.substr(0, 10),
+                  end: e.end.substr(0, 10),
+                  color: e.color
+                });
               });
-              this.events = events;
+            });
           } catch (error) {
               console.log(error);
           }
       },
       async adicionarEvento() {
           try {
-              if (this.name && this.start && this.end) {
-                  await db.collection('eventos').add({
-                      name: this.name,
-                      details: this.details,
-                      start: this.start,
-                      start_time: this.start_time,
-                      end: this.end,
-                      end_time: this.end_time,
-                      color: this.color
-                  });
-                  this.getEvento();
-                  this.name = null;
-                  this.details = null;
-                  this.start = null;
-                  this.end = null;
-                  this.color = '#1976D2';
+              if (this.name && this.details && this.start && this.end && this.color) {
+                await Eventos.registrar({
+                  name: this.name,
+                  details: this.details,
+                  start: this.start,
+                  end: this.end,
+                  color: this.color
+                }).then(resposta => {
+                  console.log(resposta.data);
+                });
+                this.getEvento();
+                this.name = null;
+                this.details = null;
+                this.start = null;
+                this.end = null;
+                this.color = '#1976D2';
               } else {
-                  console.log('Campo obligatório');
+                console.log('Campo obligatório');
               }
           } catch (error) {
               console.log(error);
@@ -322,9 +305,11 @@ import { createLogger } from 'vuex'
       },
       async deletarEvento(e) {
         try {
-          await db.collection('eventos').doc(e.id).delete();
-          this.selectedOpen = false;
-          this.getEvento();
+          await Eventos.apagar(e).then(resposta => {
+            console.log(resposta.data);
+            this.selectedOpen = false;
+            this.getEvento();
+          });
         } catch (error) {
           console.log(error);
         }
@@ -334,13 +319,8 @@ import { createLogger } from 'vuex'
       },
       async atualizarEvento(e) {
         try {
-          await db.collection('eventos').doc(e.id).update({
-            name: e.name,
-            details: e.details,
-            start: e.start,
-            start_time: e.start_time,
-            end: e.end,
-            end_time: e.end_time
+          await Eventos.atualizar(e).then(resposta => {
+            console.log(resposta.data);
           });
           this.selectedOpen = false;
           this.currentlyEditing = null;

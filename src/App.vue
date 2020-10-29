@@ -1,16 +1,19 @@
 <template>
   <v-app>
     <div>
-      <router-view></router-view>>
+      <Calendario/>
     </div>
   </v-app>
 </template>
 
 <script>
-
+import Calendario from './components/Calendario'
 export default {
   data() {
 
+  },
+  components: {
+    Calendario
   }
 }
 </script>
